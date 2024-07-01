@@ -1,0 +1,29 @@
+(copy_files 
+  %{project_root}/vendor/zfs/include/libzfs_core.h)
+
+(copy_files 
+  %{project_root}/vendor/zfs/include/libzfs.h)
+
+(copy_files 
+  %{project_root}/vendor/zfs/include/libnvpair.h)
+
+(copy_files
+  %{project_root}/vendor/zfs/lib/libspl/include/libshare.h)
+
+(copy_files
+  %{project_root}/vendor/zfs/lib/libspl/include/umem.h)
+
+(copy_files
+  %{project_root}/vendor/zfs/lib/libzfs/libzfs_impl.h)
+
+(copy_files
+  %{project_root}/vendor/zfs/lib/libspl/include/atomic.h)
+
+(subdir linux
+  (copy_files
+    %{project_root}/vendor/zfs/include/os/linux/kernel/linux/*.h))
+
+(executable
+ (name discover)
+ (modules discover)
+ (libraries dune-configurator))

@@ -1,0 +1,40 @@
+(rule
+ (targets config.ml)
+ (deps
+  include/libzfs.h
+  include/libshare.h
+  include/libnvpair.h)
+ (action
+  (run ./include/discover.exe)))
+
+(library
+ (name zfs)
+ (libraries unix)
+ (foreign_archives zfs)
+ (foreign_stubs
+  (language c)
+  (flags :standard -D_LARGEFILE64_SOURCE)
+  (names zfs_stubs)
+  (include_dirs include /usr/src/linux-hwe-6.2-headers-6.2.0-37/include /usr/src/linux-hwe-6.2-headers-6.2.0-37/include/linux) 
+  (extra_deps libzfs.a)))
+
+(rule
+ (deps
+  (source_tree %{project_root}/vendor/zfs))
+ (targets
+  libzfs.a
+  dllzfs.so)
+ (action
+  (no-infer
+   (progn
+    (chdir
+     %{project_root}/vendor/zfs
+     (progn
+      (run sh autogen.sh)
+      (run ./configure)
+      (setenv
+       CFLAGS
+       "%{ocaml-config:ocamlc_cflags}"
+       (run make -s -j))))
+    (copy %{project_root}/vendor/zfs/.libs/libzfs.a libzfs.a)
+    (copy %{project_root}/vendor/zfs/.libs/libzfs.so dllzfs.so)))))

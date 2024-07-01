@@ -1,0 +1,23 @@
+(copy_files 
+  %{project_root}/vendor/zfs/include/sys/*.h)
+
+(subdir fs 
+  (copy_files 
+    %{project_root}/vendor/zfs/include/sys/fs/*.h))
+
+(subdir sysevent 
+  (copy_files 
+    %{project_root}/vendor/zfs/include/sys/sysevent/*.h))
+
+(copy_files 
+  %{project_root}/vendor/zfs/lib/libspl/include/sys/{acl,acl_impl,callb,cmn_err,cred,debug,dkio,dklabel,dktp,feature_tests,inttypes,isa_defs,kmem,kstat,list,list_impl,mhd,mkdev,policy,poll,priv,processor,simd,stack,stdtypes,string,sunddi,systeminfo,time,trace_spl,trace_zfs,types32,types,uio,vnode,wmsum,zone}.h)
+
+(copy_files 
+  %{project_root}/vendor/zfs/include/os/linux/spl/sys/byteorder.h)
+
+(copy_files
+  %{project_root}/vendor/zfs/lib/libspl/include/os/linux/sys/mnttab.h)
+
+(copy_files
+  %{project_root}/vendor/zfs/include/os/linux/zfs/sys/zfs_context_os.h)
+
