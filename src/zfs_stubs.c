@@ -51,6 +51,8 @@ value ocaml_zfs_prop_is_string(value v_prop){
 }
 
 #define Zfs_list_val(v) (*((struct nv_list **) Data_custom_val(v)))
+#define Zfs_handle_val(v) (*((libzfs_handle_t **) Data_custom_val(v)))
+#define Zfs_pool_val(v) (*((zpool_handle_t **) Data_custom_val(v)))
 
 static void finalize_zfs_list(value v) {
   caml_stat_free(Zfs_list_val(v));
@@ -68,25 +70,81 @@ static struct custom_operations zfs_list_ops = {
   custom_fixed_length_default
 };
 
+static void finalize_zfs_handle(value v) {
+  caml_stat_free(Zfs_handle_val(v));
+  Zfs_handle_val(v) = NULL;
+}
+
+static struct custom_operations zfs_handle_ops = {
+  "zfs.zfs_handle",
+  finalize_zfs_handle,
+  custom_compare_default,
+  custom_hash_default,
+  custom_serialize_default,
+  custom_deserialize_default,
+  custom_compare_ext_default,
+  custom_fixed_length_default
+};
+
+static void finalize_zfs_pool(value v) {
+  caml_stat_free(Zfs_pool_val(v));
+  Zfs_pool_val(v) = NULL;
+}
+
+static struct custom_operations zfs_pool_ops = {
+  "zfs.zfs_pool",
+  finalize_zfs_pool,
+  custom_compare_default,
+  custom_hash_default,
+  custom_serialize_default,
+  custom_deserialize_default,
+  custom_compare_ext_default,
+  custom_fixed_length_default
+};
+
+// ZFS Initialisation
+
 value
-ocaml_zfs_lzc_init(value v_unit) {
-	int res;
-	
-	res = libzfs_core_init();
+ocaml_zfs_init(value v_unit) {
+	CAMLparam0();
+	libzfs_handle_t* res;
+	CAMLlocal1(v_handle);
 
-	if (res != 0)
-		return Val_false;
+	v_handle = caml_alloc_custom_mem(&zfs_handle_ops, sizeof(libzfs_handle_t*), 64);
+	res = libzfs_init();
+	Zfs_handle_val(v_handle) = res; 
 
-	return Val_true;
+	CAMLreturn(v_handle);
+}
+
+// ZFS Pools 
+
+value
+ocaml_zfs_pool_open(value v_handle, value v_path) {
+	CAMLparam2(v_handle, v_path);
+	zpool_handle_t* res;
+	CAMLlocal1(v_pool);
+
+	if (!caml_string_is_c_safe(v_path))
+      caml_invalid_argument("ocaml_zfs_pool_open: path is not C-safe");
+
+	v_pool = caml_alloc_custom_mem(&zfs_pool_ops, sizeof(zpool_handle_t*), 64);
+	res = zpool_open(Zfs_handle_val(v_handle), String_val(v_path));
+	Zfs_pool_val(v_handle) = res;
+
+	CAMLreturn(v_handle);
 }
 
 value
-ocaml_zfs_lzc_exists(value v_path) {
-    CAMLparam1(v_path);
-	boolean_t res;
-	
-	res = lzc_exists(String_val(v_path));
+ocaml_zfs_pool_get_name(value v_pool) {
+  CAMLparam1(v_pool);
+  CAMLlocal1(v_path);
+  const char* result;
 
-	CAMLreturn(Val_bool(res));
+  result = zpool_get_name(Zfs_pool_val(v_pool));
+  v_path = caml_copy_string(result);
+
+  CAMLreturn(v_path);
 }
+
 

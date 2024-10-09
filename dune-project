@@ -1,4 +1,6 @@
 (lang dune 3.15)
+(using mdx 0.4)
+(using ctypes 0.3)
 
 (name zfs)
 
